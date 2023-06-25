@@ -1,5 +1,6 @@
 const readline = require('readline');
 const crypto = require('crypto');
+const api = require('./api');
 
 const rl = readline.createInterface({
   input: process.stdin,
@@ -54,7 +55,30 @@ const generateSecretKeys = async (keySettings) => {
   return secretKeys;
 };
 
-const generateMultipleKeys = async (autopilot = false) => {
+const generateMultipleKeys = async () => {
+  const count = await promptForKeyCount('Enter the number of secret keys to generate (default: 3): ', 3);
+  const keySettings = [];
+
+  for (let i = 0; i < count; i++) {
+    console.log(`Settings for Secret Key ${i + 1}:`);
+    const length = await promptForKeyLength(i + 1);
+    const encoding = await promptForKeyEncoding(i + 1);
+    keySettings.push({ length, encoding });
+  }
+
+  try {
+    console.log(`Generating ${count} secret key(s)...\n`);
+    const secretKeys = await generateSecretKeys(keySettings);
+    console.log(`Generated ${count} secret key(s):\n`);
+    secretKeys.forEach((secretKey, index) => {
+      console.log(`Secret Key ${index + 1}: ${secretKey}`);
+    });
+  } catch (error) {
+    console.error('Failed to generate secret keys:', error.message);
+  }
+};
+
+const generateMultiKeysAuto = async (autopilot = false) => {
   let count;
   let length;
 
@@ -62,7 +86,7 @@ const generateMultipleKeys = async (autopilot = false) => {
     count = await promptForKeyCount('Enter the number of secret keys to generate only once (default: 3): ', 3);
     length = await promptForKeyLength('Autopilot: Enter the length of Secret Keys once in bits (default: 256): ', 256);
   } else {
-    count = await promptForKeyCount('Enter the number of secret keys to generate (default: 1): ', 1);
+    count = await promptForKeyCount('Enter the number of secret keys to generate (default: 3): ', 3);
     length = await promptForKeyLength(`Enter the length of Secret Key in bits (default: 256): `, 256);
   }
 
@@ -92,10 +116,18 @@ const promptForKeyCount = (question, defaultValue) => {
   });
 };
 
-const promptForKeyLength = (question, defaultValue) => {
+const promptForKeyLength = (keyNumber) => {
   return new Promise((resolve) => {
-    rl.question(question, (length) => {
-      resolve(parseInt(length) || defaultValue);
+    rl.question(`Enter the length of Secret Key ${keyNumber} in bits: `, (length) => {
+      resolve(parseInt(length) || 256);
+    });
+  });
+};
+
+const promptForKeyEncoding = (keyNumber) => {
+  return new Promise((resolve) => {
+    rl.question(`Enter the encoding for Secret Key ${keyNumber} (hex or base64): `, (encoding) => {
+      resolve(encoding.trim().toLowerCase() || 'hex');
     });
   });
 };
@@ -114,10 +146,10 @@ const showMenu = () => {
         generateSingleKey().finally(() => showMenu());
         break;
       case '2':
-        generateMultipleKeys(false).finally(() => showMenu());
+        generateMultipleKeys().finally(() => showMenu());
         break;
       case '3':
-        generateMultipleKeys(true).finally(() => showMenu());
+        generateMultiKeysAuto(true).finally(() => showMenu());
         break;
       case '4':
         rl.close();
@@ -131,3 +163,4 @@ const showMenu = () => {
 };
 
 showMenu();
+api.integrateWithProject();
