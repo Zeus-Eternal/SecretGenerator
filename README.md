@@ -4,31 +4,43 @@ The Secret Key Generator is a utility tool that allows you to generate random se
 
 ## Table of Contents
 
-1. [Introduction](#introduction)
-2. [Installation](#installation)
-3. [Usage](#usage)
-4. [Command-line Options](#command-line-options)
-5. [Examples](#examples)
-6. [Contributing](#contributing)
-7. [License](#license)
+- [Features](#features)
+- [Installation](#installation)
+- [Usage](#usage)
+  - [Command-line Options](#command-line-options)
+  - [Examples](#examples)
+- [Contributing](#contributing)
+- [License](#license)
+- [Resources](#resources)
 
-## Introduction
+## Features
 
-The Secret Key Generator is built with Node.js and utilizes the `crypto` module to generate random secret keys. It provides a command-line interface that allows you to specify the desired length and count of secret keys to generate.
+- Generate random secret keys with customizable length and count.
+- Command-line interface for easy usage.
+- Supports various output formats, including hexadecimal and base64.
+- High-quality randomization using the `crypto` module in Node.js.
+- Secure key generation to enhance application security.
 
 ## Installation
 
+To use the Secret Key Generator, follow these steps:
+
 1. Ensure that you have [Node.js](https://nodejs.org) installed on your system.
-2. Clone the Secret Key Generator repository from GitHub:
+2. Clone this repository:
 
-```
-git clone <repository_url>
+```bash
+git clone https://github.com/Zeus-Eternal/SecretGenerator.git
 ```
 
-3. Install the dependencies:
+3. Navigate to the cloned directory:
 
-```
+```bash
 cd secret-key-generator
+```
+
+4. Install the necessary dependencies:
+
+```bash
 npm install
 ```
 
@@ -36,45 +48,49 @@ npm install
 
 To generate secret keys, use the following command:
 
-```
-node secretGEN.js [length] [count]
+```bash
+node secretGEN.js [options]
 ```
 
 ### Command-line Options
 
 The Secret Key Generator supports the following command-line options:
 
-- `length`: The desired length of each secret key in bits. Default: 256.
-- `count`: The number of secret keys to generate. Default: 1.
+- `-l, --length <length>`: The desired length of each secret key in bits. Default: 256.
+- `-c, --count <count>`: The number of secret keys to generate. Default: 1.
+- `-f, --format <format>`: The output format of the generated secret keys. Options: `hex` (default), `base64`.
 
 ### Examples
 
-- Generate a single secret key with a length of 256 bits:
+- Generate a single secret key with a length of 256 bits (default):
 
-```
+```bash
 node secretGEN.js
 ```
 
 - Generate three secret keys with a length of 512 bits:
 
+```bash
+node secretGEN.js --length 512 --count 3
 ```
-node secretGEN.js 512 3
+
+- Generate a single secret key with a length of 128 bits in base64 format:
+
+```bash
+node secretGEN.js --length 128 --format base64
 ```
 
 ## Contributing
 
-Contributions are welcome! If you encounter any issues or have suggestions for improvements, please submit a pull request or open an issue on the GitHub repository.
-
-To contribute to the Secret Key Generator, follow these steps:
-
-1. Fork the repository.
-2. Create a new branch for your feature/bug fix.
-3. Make your changes and ensure that the tests pass.
-4. Commit your changes and push to your forked repository.
-5. Submit a pull request to the main repository.
+Contributions to the Secret Key Generator project are highly appreciated. If you encounter any issues, have feature requests, or want to contribute in any way, please refer to the contribution guidelines outlined in the [CONTRIBUTING.md](CONTRIBUTING.md) file.
 
 ## License
 
-The Secret Key Generator is released under the [MIT License](LICENSE).
+The Secret Key Generator is open-source software licensed under the [MIT License](LICENSE). Feel free to use, modify, and distribute it in accordance with the terms of the license.
+
+## Resources
+
+- [Node.js Documentation](https://nodejs.org/docs/)
+- [crypto Module Documentation](https://nodejs.org/api/crypto.html)
 
 ---
