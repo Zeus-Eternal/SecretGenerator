@@ -26,6 +26,34 @@ const generateSecretKeys = (count, length) => {
   return secretKeys;
 };
 
+/**
+ * Generates a random secret key with a specific length.
+ * @param {number} length - The length of the secret key in bits.
+ * @returns {string} The generated secret key as a hexadecimal string.
+ */
+const generateRandomSecretKey = (length = 256) => {
+  return generateSecretKey(length);
+};
+
+/**
+ * Generates a single random secret key.
+ * @param {number} length - The length of the secret key in bits.
+ * @returns {string} The generated secret key as a hexadecimal string.
+ */
+const generateSingleSecretKey = (length = 256) => {
+  return generateSecretKey(length);
+};
+
+/**
+ * Generates multiple random secret keys with a specific length.
+ * @param {number} count - The number of secret keys to generate.
+ * @param {number} length - The length of each secret key in bits.
+ * @returns {string[]} An array of generated secret keys.
+ */
+const generateMultipleSecretKeys = (count = 1, length = 256) => {
+  return generateSecretKeys(count, length);
+};
+
 // Check if the script is executed from the command line
 if (require.main === module) {
   // If executed from the command line, generate the secret keys
@@ -50,4 +78,7 @@ if (require.main === module) {
 module.exports = {
   generateSecretKey,
   generateSecretKeys,
+  generateRandomSecretKey,
+  generateSingleSecretKey,
+  generateMultipleSecretKeys,
 };
