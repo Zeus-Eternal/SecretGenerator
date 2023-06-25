@@ -1,84 +1,133 @@
+const readline = require('readline');
 const crypto = require('crypto');
+
+const rl = readline.createInterface({
+  input: process.stdin,
+  output: process.stdout
+});
 
 /**
  * Generates a random secret key.
  * @param {number} length - The length of the secret key in bits.
- * @returns {string} The generated secret key as a hexadecimal string.
+ * @param {string} encoding - The encoding for the secret key (hex or base64).
+ * @returns {string} The generated secret key as a string.
  */
-const generateSecretKey = (length) => {
+const generateSecretKey = (length, encoding) => {
   const byteLength = Math.ceil(length / 8);
   const buffer = crypto.randomBytes(byteLength);
-  return buffer.toString('hex');
-};
-
-/**
- * Generates multiple random secret keys.
- * @param {number} count - The number of secret keys to generate.
- * @param {number} length - The length of each secret key in bits.
- * @returns {string[]} An array of generated secret keys.
- */
-const generateSecretKeys = (count, length) => {
-  const secretKeys = [];
-  for (let i = 0; i < count; i++) {
-    const secretKey = generateSecretKey(length);
-    secretKeys.push(secretKey);
-  }
-  return secretKeys;
-};
-
-/**
- * Generates a random secret key with a specific length.
- * @param {number} length - The length of the secret key in bits.
- * @returns {string} The generated secret key as a hexadecimal string.
- */
-const generateRandomSecretKey = (length = 256) => {
-  return generateSecretKey(length);
+  return buffer.toString(encoding);
 };
 
 /**
  * Generates a single random secret key.
  * @param {number} length - The length of the secret key in bits.
- * @returns {string} The generated secret key as a hexadecimal string.
+ * @param {string} encoding - The encoding for the secret key (hex or base64).
+ * @returns {Promise<string>} A promise that resolves with the generated secret key.
  */
-const generateSingleSecretKey = (length = 256) => {
-  return generateSecretKey(length);
+const generateSingleKey = (length = 256, encoding = 'hex') => {
+  return new Promise((resolve, reject) => {
+    if (isNaN(length) || length <= 0) {
+      reject(new Error('Invalid key length'));
+    } else {
+      const secretKey = generateSecretKey(length, encoding);
+      resolve(secretKey);
+    }
+  });
 };
 
 /**
- * Generates multiple random secret keys with a specific length.
- * @param {number} count - The number of secret keys to generate.
- * @param {number} length - The length of each secret key in bits.
- * @returns {string[]} An array of generated secret keys.
+ * Generates multiple random secret keys.
+ * @param {Array<{ length: number, encoding: string }>} keySettings - An array of individual key settings.
+ * @returns {Promise<string[]>} A promise that resolves with an array of generated secret keys.
  */
-const generateMultipleSecretKeys = (count = 1, length = 256) => {
-  return generateSecretKeys(count, length);
+const generateSecretKeys = async (keySettings) => {
+  const secretKeys = [];
+  for (let i = 0; i < keySettings.length; i++) {
+    try {
+      const { length, encoding } = keySettings[i];
+      const secretKey = await generateSingleKey(length, encoding);
+      secretKeys.push(secretKey);
+    } catch (error) {
+      console.error(`Failed to generate Secret Key ${i + 1}:`, error.message);
+    }
+  }
+  return secretKeys;
 };
 
-// Check if the script is executed from the command line
-if (require.main === module) {
-  // If executed from the command line, generate the secret keys
-  const [length, count] = process.argv.slice(2);
+const generateMultipleKeys = async (autopilot = false) => {
+  let count;
+  let length;
 
-  const keyLength = length ? parseInt(length, 10) : 256;
-  const keyCount = count ? parseInt(count, 10) : 1;
-
-  if (isNaN(keyLength) || isNaN(keyCount)) {
-    console.error('Invalid command-line arguments. Please provide valid numeric values for length and count.');
-    process.exit(1);
+  if (autopilot) {
+    count = await promptForKeyCount('Enter the number of secret keys to generate only once (default: 3): ', 3);
+    length = await promptForKeyLength('Autopilot: Enter the length of Secret Keys once in bits (default: 256): ', 256);
+  } else {
+    count = await promptForKeyCount('Enter the number of secret keys to generate (default: 1): ', 1);
+    length = await promptForKeyLength(`Enter the length of Secret Key in bits (default: 256): `, 256);
   }
 
-  const secretKeys = generateSecretKeys(keyCount, keyLength);
+  const keySettings = [];
 
-  console.log(`Generated ${keyCount} secret key(s) of length ${keyLength} bits:`);
-  for (let i = 0; i < secretKeys.length; i++) {
-    console.log(`Secret Key ${i + 1}: ${secretKeys[i]}`);
+  for (let i = 0; i < count; i++) {
+    keySettings.push({ length, encoding: 'hex' });
   }
-}
 
-module.exports = {
-  generateSecretKey,
-  generateSecretKeys,
-  generateRandomSecretKey,
-  generateSingleSecretKey,
-  generateMultipleSecretKeys,
+  try {
+    console.log(`Generating ${count} secret key(s)...\n`);
+    const secretKeys = await generateSecretKeys(keySettings);
+    console.log(`Generated ${count} secret key(s):\n`);
+    secretKeys.forEach((secretKey, index) => {
+      console.log(`Secret Key ${index + 1}: ${secretKey}`);
+    });
+  } catch (error) {
+    console.error('Failed to generate secret keys:', error.message);
+  }
 };
+
+const promptForKeyCount = (question, defaultValue) => {
+  return new Promise((resolve) => {
+    rl.question(question, (count) => {
+      resolve(parseInt(count) || defaultValue);
+    });
+  });
+};
+
+const promptForKeyLength = (question, defaultValue) => {
+  return new Promise((resolve) => {
+    rl.question(question, (length) => {
+      resolve(parseInt(length) || defaultValue);
+    });
+  });
+};
+
+const showMenu = () => {
+  console.log('Secret Key Generator');
+  console.log('---------------------');
+  console.log('1. Generate Single Key');
+  console.log('2. Generate Multiple Keys');
+  console.log('3. Generate Multiple Keys (Autopilot)');
+  console.log('4. Exit');
+
+  rl.question('Enter your choice: ', async (choice) => {
+    switch (choice) {
+      case '1':
+        generateSingleKey().finally(() => showMenu());
+        break;
+      case '2':
+        generateMultipleKeys(false).finally(() => showMenu());
+        break;
+      case '3':
+        generateMultipleKeys(true).finally(() => showMenu());
+        break;
+      case '4':
+        rl.close();
+        break;
+      default:
+        console.log('Invalid choice. Please try again.\n');
+        showMenu();
+        break;
+    }
+  });
+};
+
+showMenu();
